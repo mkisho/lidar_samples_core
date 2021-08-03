@@ -10,7 +10,7 @@ import tensorflow as tf
 from keras.models import model_from_json
 os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 # Importing the dataset
-dataset = pd.read_csv('/home/mathias/catkin_ws/src/lidar_samples_reloaded/datasets/DATASETCOMPLETO.csv')
+dataset = pd.read_csv('/home/mathias/catkin_ws/src/lidar_samples_reloaded/datasets/horiz.csv')
 X = dataset.iloc[:, 2: 722].values
 y = dataset.iloc[:, -1].values
 print(y)
@@ -41,8 +41,8 @@ sc = StandardScaler()
 X_train = sc.fit_transform(X_train) 
 X_test = sc.transform(X_test)
 
-X_train= np.reshape(X_train, (11249, 720, 1, 1))
-X_test= np.reshape(X_test, (3750, 720, 1, 1))
+X_train= np.reshape(X_train, (5624, 720, 1, 1))
+X_test= np.reshape(X_test, (1875, 720, 1, 1))
 
 
 ###
@@ -116,7 +116,12 @@ dataset = pd.read_csv('/home/mathias/catkin_ws/src/lidar_samples_reloaded/datase
 X = dataset.iloc[:, 2: 722].values
 y = dataset.iloc[:, -1].values
 X = sc.transform(X) 
+X= np.reshape(X, (2499, 720, 1, 1))
 y_pred = model.predict(X)
+y_pred = (y_pred>0.5)
+y = (y == ' true')
+print(y)
+print(y_pred)
 accuracies.append(accuracy_score(y, y_pred)*100)
 
 
@@ -127,15 +132,22 @@ dataset = pd.read_csv('/home/mathias/catkin_ws/src/lidar_samples_reloaded/datase
 X = dataset.iloc[:, 2: 722].values
 y = dataset.iloc[:, -1].values
 X = sc.transform(X) 
+X= np.reshape(X, (2499, 720, 1, 1))
 y_pred = model.predict(X)
+y_pred = (y_pred>0.5)
+y = (y == ' true')
 accuracies.append(accuracy_score(y, y_pred)*100)
+
 
 print("FSHT")
 dataset = pd.read_csv('/home/mathias/catkin_ws/src/lidar_samples_reloaded/datasets/FSHT.csv')
 X = dataset.iloc[:, 2: 722].values
 y = dataset.iloc[:, -1].values
 X = sc.transform(X) 
+X= np.reshape(X, (2499, 720, 1, 1))
 y_pred = model.predict(X)
+y_pred = (y_pred>0.5)
+y = (y == ' true')
 accuracies.append(accuracy_score(y, y_pred)*100)
 
 print("FSHTA")
@@ -143,7 +155,10 @@ dataset = pd.read_csv('/home/mathias/catkin_ws/src/lidar_samples_reloaded/datase
 X = dataset.iloc[:, 2: 722].values
 y = dataset.iloc[:, -1].values
 X = sc.transform(X) 
+X= np.reshape(X, (2499, 720, 1, 1))
 y_pred = model.predict(X)
+y = (y == ' true')
+y_pred = (y_pred>0.5)
 accuracies.append(accuracy_score(y, y_pred)*100)
 
 print("FSHTH")
@@ -151,7 +166,10 @@ dataset = pd.read_csv('/home/mathias/catkin_ws/src/lidar_samples_reloaded/datase
 X = dataset.iloc[:, 2: 722].values
 y = dataset.iloc[:, -1].values
 X = sc.transform(X) 
+X= np.reshape(X, (2499, 720, 1, 1))
 y_pred = model.predict(X)
+y = (y == ' true')
+y_pred = (y_pred>0.5)
 accuracies.append(accuracy_score(y, y_pred)*100)
 
 print("FSHTC")
@@ -159,7 +177,10 @@ dataset = pd.read_csv('/home/mathias/catkin_ws/src/lidar_samples_reloaded/datase
 X = dataset.iloc[:, 2: 722].values
 y = dataset.iloc[:, -1].values
 X = sc.transform(X) 
+X= np.reshape(X, (2499, 720, 1, 1))
 y_pred =model.predict(X)
+y = (y == ' true')
+y_pred = (y_pred>0.5)
 accuracies.append(accuracy_score(y, y_pred)*100)
 
 print("Approach")
@@ -167,31 +188,34 @@ dataset = pd.read_csv('/home/mathias/catkin_ws/src/lidar_samples_reloaded/datase
 X = dataset.iloc[:, 2: 722].values
 y = dataset.iloc[:, -1].values
 X = sc.transform(X) 
+X= np.reshape(X, (200, 720, 1, 1))
 y_pred = model.predict(X)
+y = (y == ' true')
+y_pred = (y_pred>0.5)
 accuracies.append(accuracy_score(y, y_pred)*100)
 
 
 
-final_times=[]
-for i in range(50):
-#	print(i)
-	for j in range(200):
-		X_FW = np.array(X[j])
-		X_FW= np.reshape(X_FW, (1,720))
-		start_time=time.time()
-		y_pred = model.predict(X)
-		final_times.append( time.time()-start_time)
-#		print("--- %s seconds ---" % (time.time() - start_time))
+#final_times=[]
+#for i in range(50):
+##	print(i)
+#	for j in range(200):
+#		X_FW = np.array(X[j])
+#		X_FW= np.reshape(X_FW, (1,720))
+#		start_time=time.time()
+#		y_pred = model.predict(X)
+#		final_times.append( time.time()-start_time)
+##		print("--- %s seconds ---" % (time.time() - start_time))
 
 
-print(final_times)
+#print(final_times)
 
-n=np.array(final_times)
-print("Media= ", np.mean(n))
-print("Maior= ", np.amax(n))
-print("Menor= ", np.amin(n))
-print("Desvio Padrão= ",np.std(n))
-print("Variância= ",   np.var(n))
+#n=np.array(final_times)
+#print("Media= ", np.mean(n))
+#print("Maior= ", np.amax(n))
+#print("Menor= ", np.amin(n))
+#print("Desvio Padrão= ",np.std(n))
+#print("Variância= ",   np.var(n))
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -216,4 +240,5 @@ plt.plot()
 plt.show()
 print(accuracies)
 cm = confusion_matrix(y, y_pred)
+
 

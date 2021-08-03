@@ -3,9 +3,14 @@
 #include <image_transport/image_transport.h>
 
 #include "sensor_msgs/PointCloud2.h"
+#include "std_msgs/Bool.h"
 #include "std_msgs/String.h"
 #include "sensor_msgs/Image.h"
 #include "geometry_msgs/Point.h"
+#include "mrs_msgs/TrajectoryReferenceSrv.h"
+#include "mrs_msgs/Reference.h"
+#include "mrs_msgs/Vec4.h"
+#include "nav_msgs/Odometry.h"
 
 #include "opencv2/core/core.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
@@ -49,15 +54,36 @@ float altura=0;
 sensor_msgs::LaserScan scan;
 int new_reading= 0;
 
-enum state_machine{
+Point3f gpsOdom;
+
+bool isVertTower = false;
+bool isHorizTower= false;
+
+
+typedef enum state_machine{
 GO_TO_POINT,
+ONGOING_TRAJECTORY,
 CHECK_FOR_TOWER,
 ALIGN_WITH_TOWER,
-APPROACH_TOWER
+APPROACH_TOWER,
+INSPECT
+
+} State_machine;
+
+
+void scanHoriz(const std_msgs::Bool::ConstPtr& msg){
+	isHorizTower= msg->data;
 }
 
+void scanVert(const std_msgs::Bool::ConstPtr& msg){
+	isVertTower= msg->data;
+}
 
-
+void odomDroneCallback(const nav_msgs::Odometry::ConstPtr& msg){
+	gpsOdom.x= msg->pose.pose.position.x;
+	gpsOdom.y= msg->pose.pose.position.y;
+	gpsOdom.z= msg->pose.pose.position.z;
+}
 
 void scanCallback(const sensor_msgs::LaserScan::ConstPtr& msg){
 	scan.header = msg->header;
@@ -99,7 +125,37 @@ void locate_base()
 
 std_msgs::Header trajectoryHeader;
 
-void set_next_point(Point3f goal, geometry_msgs::Point oldPos, mrs_msgs::TrajectoryReference *traj){
+
+float  aproxima(float objetivo, float origem){
+	float diff = objetivo-origem;
+	if(diff==0){
+		return objetivo;
+	}
+	else if (diff>0){
+		if(diff>0.2){
+			origem+=0.2;
+			return origem;
+		}
+		return objetivo;
+	}
+	else{
+		if(diff<-0.2){
+			origem-=0.2;
+			return origem;
+		}
+		return objetivo;
+	}
+}
+
+void set_next_point_relat(mrs_msgs::Vec4 *point, float x, float y, float z, float w){
+	point->request.goal[0]=x;
+	point->request.goal[1]=y;
+	point->request.goal[2]=z;
+	point->request.goal[3]=w;
+	point->response.success=false;
+}
+
+void set_next_point(geometry_msgs::Point goal, geometry_msgs::Point oldPos, mrs_msgs::TrajectoryReference *traj){
 //	goal.x;
 //	goal->request.goal[1]=y;
 //	goal->request.goal[2]=z;
@@ -143,15 +199,19 @@ void set_next_point(Point3f goal, geometry_msgs::Point oldPos, mrs_msgs::Traject
 int main(int argc, char** argv)
 {
 	ros::init(argc, argv, "sampleImage");
-	if (argc != 3)
+	if (argc != 4)
 	{
-		ROS_INFO("usage: lidar_samples_node File_name isTorre");
+		ROS_INFO("usage: rosrun lidar_samples_node X Y Z");
 		return 1;
 	}
-	if(strcmp(argv[2], "true") && strcmp(argv[2], "false")){
-		ROS_INFO("isTorre must be either true or false");
-		return 1;
-	}
+	geometry_msgs::Point goal;
+	char *ptr;
+	goal.x=strtod(argv[1], &ptr);
+	goal.y=strtod(argv[2], &ptr);
+	goal.z=strtod(argv[3], &ptr);
+
+	printf("goal= %f, %f, %f\n",goal.x,goal.y,goal.z);
+
 	ros::NodeHandle n;
 	image_transport::ImageTransport it(n);
 //    pub = it.advertise("/image_raw", 1);
@@ -167,17 +227,21 @@ int main(int argc, char** argv)
     ros::Subscriber baro = n.subscribe("/uav1/odometry/altitude", 1, ler_altura);
 */
     	ros::ServiceClient uavGoto = n.serviceClient<mrs_msgs::TrajectoryReferenceSrv>("/uav1/control_manager/trajectory_reference");
+    	ros::ServiceClient uavGotoRelat = n.serviceClient<mrs_msgs::Vec4>("/uav1/control_manager/goto_relative");
 	mrs_msgs::TrajectoryReferenceSrv trajectorySrv;
 	mrs_msgs::TrajectoryReference next_trajectory;
 	ros::Subscriber sub = n.subscribe("/iris/camera/image_raw", 1, getImage);
-	ros::Subscriber subScanH = n.subscribe("/uav1/rplidar/scan", 1, getImage);
-	ros::Subscriber subScanV = n.subscribe("/uav1/rplidar_vertical/scan", 1, getImage);
+	ros::Subscriber subScanH = n.subscribe("/horiz", 1, scanHoriz);
+	ros::Subscriber subScanV = n.subscribe("/vert", 1, scanVert);
+//	ros::Subscriber subScanH = n.subscribe("/uav1/rplidar/scan", 1, scanHoriz);
+//	ros::Subscriber subScanV = n.subscribe("/uav1/rplidar_vertical/scan", 1, scanVert);
+        ros::Subscriber subOdom = n.subscribe("/uav1/odometry/odom_gps", 1000, odomDroneCallback);
 	string path = ros::package::getPath("lidar_samples")+"/datasets/" + argv[1];
-	cout << "Path do arquivo: " << path << "\n";
 	ofstream resultados(path);
 	string imgFile;
 	ros::Subscriber subScan = n.subscribe("scan", 1, scanCallback);
 	ros::ServiceClient client = n.serviceClient<gazebo_msgs::SetLinkState>("gazebo/set_link_state");
+	mrs_msgs::Vec4 girar;
 	gazebo_msgs::SetLinkState srv;
 	srand(time(NULL));
 	float x,y,z;
@@ -189,20 +253,72 @@ int main(int argc, char** argv)
 	float angle;
 	tf2::Quaternion quat_tf;
 	geometry_msgs::Quaternion q;
+	geometry_msgs::Point oldPos;
+	geometry_msgs::Point point;
+	cout << "waiting for gps \n";
+
+	ros::topic::waitForMessage<nav_msgs::Odometry>("/uav1/odometry/odom_gps");
+	oldPos.x=0;
+	oldPos.y=0;
+	oldPos.z=0;
+	State_machine state=GO_TO_POINT;
+	float distanceT;
+	cout << "iniciando máquina de estados \n";
 
 	while(1){
 		switch(state){
 			case GO_TO_POINT:
-				
+				cout << "setting point\n";
+				set_next_point(point, oldPos, &next_trajectory);
+				trajectorySrv.request.trajectory=next_trajectory;
+				trajectorySrv.response.success=false;
+				while(!trajectorySrv.response.success){
+					uavGoto.call(trajectorySrv)/
+					sleep(1);
+				}
+				state=ONGOING_TRAJECTORY;
+
 			break;
-			case CHECK_FOR_TOWER:
+			case ONGOING_TRAJECTORY:
+				cout <<"ongoing route\n";
+				distanceT= sqrt(pow(point.x-gpsOdom.x,2)+pow(point.y-gpsOdom.y,2)+pow(point.z-gpsOdom.z,2));
+				if(distanceT < 0.5){
+					cout <<"goal reached\n";
+					state=INSPECT;
+				}
+
+			break;
+			case INSPECT:
+				isHorizTower=false;
+				ros::topic::waitForMessage<std_msgs::Bool>("/horiz");
+				
+				if(isHorizTower){
+					isVertTower=false;
+					ros::topic::waitForMessage<std_msgs::Bool>("/vert");
+					if(isVertTower){
+						set_next_point_relat(&girar, 0.1, 0, 0, 0);
+						while (girar.response.success == false)
+						{
+							uavGotoRelat.call(girar);
+							sleep(1);
+						}
+					}
+					else{
+						
+						set_next_point_relat(&girar, 0, 0, 0 , -0.10);
+						while (girar.response.success == false)
+						{
+							uavGotoRelat.call(girar);
+							sleep(1);
+						}
+					}
+				}
 				
 			break;
 			case ALIGN_WITH_TOWER:
 			break;
-			case APPORACH_TOWER:
+			case APPROACH_TOWER:
 			break;
-
 		}
 	}
 	return 0;
