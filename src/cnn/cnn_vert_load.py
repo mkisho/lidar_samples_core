@@ -11,7 +11,7 @@ from keras.models import model_from_json
 #os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 # Importing the dataset
 dataset = pd.read_csv('/home/jerson/catkin_ws/src/lidar_samples_reloaded/datasets/horiz.csv')
-X = dataset.iloc[:, 2: 722].values
+X = dataset.iloc[:, 2: 182].values
 y = dataset.iloc[:, -1].values
 print(y)
 y = (y == ' true')
@@ -41,13 +41,12 @@ sc = StandardScaler()
 X_train = sc.fit_transform(X_train) 
 X_test = sc.transform(X_test)
 
-X_train= np.reshape(X_train, (5624, 720, 1, 1))
-X_test= np.reshape(X_test, (1875, 720, 1, 1))
-#X= np.reshape(X, (9999, 720, 1, 1))
+X_train= np.reshape(X_train, (len(X_train), 180, 1, 1))
+X_test= np.reshape(X_test, (len(X_test), 180, 1, 1))
+#X= np.reshape(X, (9999, 180, 1, 1))
 
 
 ###
-    
 # Fitting classifier to the Training set
 # Create your classifier here
 import keras
@@ -72,8 +71,8 @@ from sklearn.model_selection import cross_val_score
 import joblib
 
 #filename = '/home/mathias/catkin_ws/src/lidar_samples_reloaded/src/cnn/modelSave/model_torres_horiz.sav'
-filename = '/home/jerson/catkin_ws/src/lidar_samples_reloaded/src/cnn/cnn_torres_horiz.h5'
-filenameSC = '/home/jerson/catkin_ws/src/lidar_samples_reloaded/src/cnn/sc_torres_horiz.sav'
+filename = '/home/jerson/catkin_ws/src/lidar_samples_reloaded/src/cnn/cnn_torres_vert.h5'
+filenameSC = '/home/jerson/catkin_ws/src/lidar_samples_reloaded/src/cnn/sc_torres_vert.sav'
 
 model= keras.models.load_model(filename)
 
@@ -111,10 +110,10 @@ print("--------------------")
 accuracies=[]
 print("FSHH")
 dataset = pd.read_csv('/home/jerson/catkin_ws/src/lidar_samples_reloaded/datasets/FSHH.csv')
-X = dataset.iloc[:, 2: 722].values
+X = dataset.iloc[:, 2: 182].values
 y = dataset.iloc[:, -1].values
 X = sc.transform(X) 
-X= np.reshape(X, (2499, 720, 1, 1))
+X= np.reshape(X, (2499, 180, 1, 1))
 y_pred = model.predict(X)
 y_pred = (y_pred>0.5)
 y = (y == ' true')
@@ -127,10 +126,10 @@ accuracies.append(accuracy_score(y, y_pred)*100)
 
 print("FSHA")
 dataset = pd.read_csv('/home/jerson/catkin_ws/src/lidar_samples_reloaded/datasets/FSHA.csv')
-X = dataset.iloc[:, 2: 722].values
+X = dataset.iloc[:, 2: 182].values
 y = dataset.iloc[:, -1].values
 X = sc.transform(X) 
-X= np.reshape(X, (2499, 720, 1, 1))
+X= np.reshape(X, (2499, 180, 1, 1))
 y_pred = model.predict(X)
 y_pred = (y_pred>0.5)
 y = (y == ' true')
@@ -139,10 +138,10 @@ accuracies.append(accuracy_score(y, y_pred)*100)
 
 print("FSHT")
 dataset = pd.read_csv('/home/jerson/catkin_ws/src/lidar_samples_reloaded/datasets/FSHT.csv')
-X = dataset.iloc[:, 2: 722].values
+X = dataset.iloc[:, 2: 182].values
 y = dataset.iloc[:, -1].values
 X = sc.transform(X) 
-X= np.reshape(X, (2499, 720, 1, 1))
+X= np.reshape(X, (2499, 180, 1, 1))
 y_pred = model.predict(X)
 y_pred = (y_pred>0.5)
 y = (y == ' true')
@@ -150,10 +149,10 @@ accuracies.append(accuracy_score(y, y_pred)*100)
 
 print("FSHTA")
 dataset = pd.read_csv('/home/jerson/catkin_ws/src/lidar_samples_reloaded/datasets/FSHTA.csv')
-X = dataset.iloc[:, 2: 722].values
+X = dataset.iloc[:, 2: 182].values
 y = dataset.iloc[:, -1].values
 X = sc.transform(X) 
-X= np.reshape(X, (2499, 720, 1, 1))
+X= np.reshape(X, (2499, 180, 1, 1))
 y_pred = model.predict(X)
 y = (y == ' true')
 y_pred = (y_pred>0.5)
@@ -161,10 +160,10 @@ accuracies.append(accuracy_score(y, y_pred)*100)
 
 print("FSHTH")
 dataset = pd.read_csv('/home/jerson/catkin_ws/src/lidar_samples_reloaded/datasets/FSHTH.csv')
-X = dataset.iloc[:, 2: 722].values
+X = dataset.iloc[:, 2: 182].values
 y = dataset.iloc[:, -1].values
 X = sc.transform(X) 
-X= np.reshape(X, (2499, 720, 1, 1))
+X= np.reshape(X, (2499, 180, 1, 1))
 y_pred = model.predict(X)
 y = (y == ' true')
 y_pred = (y_pred>0.5)
@@ -172,10 +171,10 @@ accuracies.append(accuracy_score(y, y_pred)*100)
 
 print("FSHTC")
 dataset = pd.read_csv('/home/jerson/catkin_ws/src/lidar_samples_reloaded/datasets/FSHTC.csv')
-X = dataset.iloc[:, 2: 722].values
+X = dataset.iloc[:, 2: 182].values
 y = dataset.iloc[:, -1].values
 X = sc.transform(X) 
-X= np.reshape(X, (2499, 720, 1, 1))
+X= np.reshape(X, (2499, 180, 1, 1))
 y_pred =model.predict(X)
 y = (y == ' true')
 y_pred = (y_pred>0.5)
@@ -183,10 +182,10 @@ accuracies.append(accuracy_score(y, y_pred)*100)
 
 print("Approach")
 dataset = pd.read_csv('/home/jerson/catkin_ws/src/lidar_samples_reloaded/datasets/approachH.csv')
-X = dataset.iloc[:, 2: 722].values
+X = dataset.iloc[:, 2: 182].values
 y = dataset.iloc[:, -1].values
 X = sc.transform(X) 
-X= np.reshape(X, (200, 720, 1, 1))
+X= np.reshape(X, (200, 180, 1, 1))
 y_pred = model.predict(X)
 y = (y == ' true')
 y_pred = (y_pred>0.5)
@@ -199,7 +198,7 @@ for i in range(1):
 	print(i)
 	for j in range(9999):
 		X_FW = np.array(X[j])
-		X_FW= np.reshape(X_FW, (1,720,1,1))
+		X_FW= np.reshape(X_FW, (1,180,1,1))
 		start_time=time.time()
 		y_pred = model.predict(X_FW)
 #		final_times.append( time.time()-start_time)
