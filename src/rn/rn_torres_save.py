@@ -131,7 +131,12 @@ classifier.fit(X_train, y_train, epochs=100, verbose=1, batch_size = 32)
 # filename = 'lidar_samples_core/src/modelSave/rn_torres_horiz.sav'
 # joblib.dump(classifier, filename)
 
+import joblib
+
 classifier.save('lidar_samples_core/src/modelSave/rn_torres_horiz.h5')
+filenameSC = '/home/mathias/catkin_ws/src/lidar_samples_reloaded/src/rn/sc_torres_horiz.sav'
+#joblib.dump(sv, filename)
+joblib.dump(sc, filenameSC)
 
 # classifier = load_model('lidar_samples_core/src/modelSave/rn_torres_horiz.h5')
 

@@ -1,0 +1,22 @@
+digraph G {
+"map" -> "map_ned"[label="Broadcaster: /uav1/mavros\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 8662.617 sec old)\nBuffer length: 0.000 sec\n"];
+"odom" -> "odom_ned"[label="Broadcaster: /uav1/mavros\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 8662.617 sec old)\nBuffer length: 0.000 sec\n"];
+"base_link" -> "base_link_frd"[label="Broadcaster: /uav1/mavros\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 8662.617 sec old)\nBuffer length: 0.000 sec\n"];
+"uav1/fcu" -> "uav1/fcu_untilted"[label="Broadcaster: /uav1/uav1_nodelet_manager\nAverage rate: 100.251 Hz\nMost recent transform: 8662.610 ( 0.007 sec old)\nBuffer length: 4.788 sec\n"];
+edge [style=invis];
+ subgraph cluster_legend { style=bold; color=black; label ="view_frames Result";
+"Recorded at time: 8662.617"[ shape=plaintext ] ;
+ }->"map";
+edge [style=invis];
+ subgraph cluster_legend { style=bold; color=black; label ="view_frames Result";
+"Recorded at time: 8662.617"[ shape=plaintext ] ;
+ }->"odom";
+edge [style=invis];
+ subgraph cluster_legend { style=bold; color=black; label ="view_frames Result";
+"Recorded at time: 8662.617"[ shape=plaintext ] ;
+ }->"base_link";
+edge [style=invis];
+ subgraph cluster_legend { style=bold; color=black; label ="view_frames Result";
+"Recorded at time: 8662.617"[ shape=plaintext ] ;
+ }->"uav1/fcu";
+}

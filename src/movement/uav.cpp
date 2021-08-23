@@ -23,6 +23,7 @@
 #include <string>
 
 #include "sensor_msgs/LaserScan.h"
+#include "visualization_msgs/Marker.h"
 #include "gazebo_msgs/SetLinkState.h"
 #include "sensor_msgs/LaserScan.h"
 #include "geometry_msgs/Quaternion.h"
@@ -83,6 +84,14 @@ void odomDroneCallback(const nav_msgs::Odometry::ConstPtr& msg){
 	gpsOdom.x= msg->pose.pose.position.x;
 	gpsOdom.y= msg->pose.pose.position.y;
 	gpsOdom.z= msg->pose.pose.position.z;
+}
+
+visualization_msgs::Marker posTag;
+
+void tagCallback(const visualization_msgs::Marker::ConstPtr& msg){
+	posTag.pose.position.x= msg->pose.position.x;
+	posTag.pose.position.y= msg->pose.position.y;
+	posTag.pose.position.z= msg->pose.position.z;
 }
 
 void scanCallback(const sensor_msgs::LaserScan::ConstPtr& msg){

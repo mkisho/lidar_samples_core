@@ -8,7 +8,7 @@ import pandas as pd
 import os
 os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 # Importing the dataset
-dataset = pd.read_csv('/home/mathias/catkin_ws/src/lidar_samples_reloaded/datasets/DATASETVERTICAL.csv')
+dataset = pd.read_csv('/home/mathias/catkin_ws/src/lidar_samples_reloaded/datasets/vert.csv')
 X = dataset.iloc[:, 2: 182].values
 y = dataset.iloc[:, -1].values
 

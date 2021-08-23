@@ -10,15 +10,19 @@ windows:
   - gazebo:
       layout: tiled
       panes:
-        - waitForRos; roslaunch lidar_samples simulation.launch world_name:=MundoHouseH gui:=true
+        - waitForRos; roslaunch lidar_samples simulation.launch world_name:=tag gui:=true
   - status:
       layout: tiled
       panes:
         - waitForSimulation; roslaunch mrs_uav_status status.launch
+  - tag:
+      layout: tiled
+      panes:
+        - waitForSimulation; roslaunch lidar_samples tag.launch
   - spawn:
       layout: tiled
       panes:
-        - waitForSimulation; rosservice call /mrs_drone_spawner/spawn "1 $UAV_TYPE --enable-rangefinder --enable-bluefox-camera --enable-realsense-front --pos 0 -10 20 0"
+        - waitForSimulation; rosservice call /mrs_drone_spawner/spawn "1 $UAV_TYPE --enable-rangefinder --enable-bluefox-camera --enable-rplidar --enable-rplidar-vertical --enable_realsense_front --pos 6 5 0 0"
   - control:
       layout: tiled
       panes:
@@ -27,6 +31,15 @@ windows:
       layout: tiled
       panes:
         - waitForOdometry; roslaunch mrs_optic_flow optic_flow.launch
+  - movement:
+      layout: tiled
+      panes:
+        - waitForOdometry; rosrun lidar_samples lidar_samples_system 0 8 4
+  - prediction:
+      layout: tiled
+      panes:
+        - waitForOdometry; rosrun lidar_samples svm_torres_horiz_ros.py
+        - waitForOdometry; rosrun lidar_samples svm_torres_vert_ros.py
   - takeoff:
       layout: tiled
       panes:

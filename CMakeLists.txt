@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   image_transport
   mrs_msgs
   mavros_msgs
+  visualization_msgs
 )
 
 catkin_package(
@@ -23,19 +24,34 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(${PROJECT_NAME}_node src/lidar_samples_vertical.cpp)
+add_executable(${PROJECT_NAME}_node src/sampling/lidar_samples_vertical.cpp)
 target_link_libraries(${PROJECT_NAME}_node
    ${catkin_LIBRARIES}
 )
-add_executable(${PROJECT_NAME}_approach src/approach.cpp)
+add_executable(${PROJECT_NAME}_approach src/sampling/approach.cpp)
 target_link_libraries(${PROJECT_NAME}_approach
    ${catkin_LIBRARIES}
 )
+add_executable(${PROJECT_NAME}_uav_sampling src/sampling/uav_lidar.cpp)
+target_link_libraries(${PROJECT_NAME}_uav_sampling
+   ${catkin_LIBRARIES}
+)
+
 add_executable(${PROJECT_NAME}_collectCamera src/sampling/collectImages.cpp)
 target_link_libraries(${PROJECT_NAME}_collectCamera
    ${catkin_LIBRARIES} /usr/lib/x86_64-linux-gnu/libopencv_core.so /usr/lib/x86_64-linux-gnu/libopencv_imgproc.so /usr/lib/x86_64-linux-gnu/libopencv_highgui.so
 )
+add_executable(${PROJECT_NAME}_system src/movement/uav.cpp)
+target_link_libraries(${PROJECT_NAME}_system
+   ${catkin_LIBRARIES} /usr/lib/x86_64-linux-gnu/libopencv_core.so /usr/lib/x86_64-linux-gnu/libopencv_imgproc.so /usr/lib/x86_64-linux-gnu/libopencv_highgui.so
+)
 
-catkin_install_python(PROGRAMS src/detector.py
+catkin_install_python(PROGRAMS src/rn/rn_torres_ros.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+catkin_install_python(PROGRAMS src/svm/svm_torres_horiz_ros.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+catkin_install_python(PROGRAMS src/svm/svm_torres_vert_ros.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
